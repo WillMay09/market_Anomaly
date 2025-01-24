@@ -20,9 +20,9 @@ def makePrediction(modelName):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     y_pred = model.predict(X_test)
     modelStats = classification_report(y_test, y_pred, output_dict=True)
-    print(modelStats)
+    return modelStats
 
-def getRegressionModelInfo():
+def getRegressionModelHeatMap():
     MarketData = pd.read_csv('financialMarketData.csv')
     numeric_columns = MarketData.select_dtypes(include=[np.number])
 
@@ -30,11 +30,31 @@ def getRegressionModelInfo():
     #get correlation matrix
 
     return heatMap_img
-    
 
-    
-    
+def getRegressionModelHistogram():
+    MarketData = pd.read_csv('financialMarketData.csv')
+    #most correlated columns
+    important_cols = ["VIX","XAU BGNL", "DXY", "MXUS", "MXJP", "GTITL30YR"]
+    histogram_img = createHistogram(MarketData,important_cols)
+    return histogram_img
 
+def createHistogram(MarketData, important_cols):
+    plt.figure(figsize=(20,6))
+    fig, axes = plt.subplots(1, len(important_cols), figsize=(20,6))
+    fig.suptitle('Feature Distributions by Target Class (Y)')
+
+    for i, col in enumerate(important_cols):
+        sns.histplot(data=MarketData, x=col, hue='Y', kde=True, ax=axes[i])
+        axes[i].set_title(col)
+
+
+    plt.tight_layout()
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+    return savePlotAsBase64(buf)
+
+#Helper Methods
 def getCorrelationMatrix(numeric_columns):
     corr_matrix = numeric_columns.corr()
 
